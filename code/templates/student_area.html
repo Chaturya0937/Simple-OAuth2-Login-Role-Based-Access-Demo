@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% block title %}Student Area{% endblock %} {% block
+content %}
+<span class="ok">200 OK &mdash; Access granted</span>
+<h2>Student Area</h2>
+<p class="muted">
+  Accessible to authenticated users with role <code>student</code> or
+  <code>admin</code>.
+</p>
+<p>
+  Logged in as <strong>{{ user.name }}</strong> ({{ user.email }}) &middot;
+  Role: <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
+</p>
+
+<hr />
+
+<h2 style="font-size: 1.05rem">Available to students</h2>
+<ul>
+  <li>View course materials and assignments</li>
+  <li>Check grades and feedback</li>
+  <li>Update your local role record</li>
+</ul>
+{% endblock %}

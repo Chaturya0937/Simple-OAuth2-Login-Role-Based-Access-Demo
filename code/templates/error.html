@@ -1,0 +1,6 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+card_class %}error-card{% endblock %} {% block content %}
+<p class="eyebrow">HTTP {{ status_code }}</p>
+<h2>{{ title }}</h2>
+<p>{{ message }}</p>
+{% endblock %}
