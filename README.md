@@ -6,22 +6,7 @@
 
 Authentication is delegated to Google using the OAuth 2.0 / OpenID Connect Authorization Code flow, handled by **Authlib**. After the callback, the backend reads the verified email from Google's UserInfo response, optionally enforces an institutional email domain, and maps the email to a local role (`student` or `admin`) stored in `users_roles.json`. A reusable FastAPI dependency (`require_role`) guards the protected routes, returning **401** for unauthenticated requests and **403** for authenticated users whose role is not allowed. First-time users are persisted to the role store with the default `student` role.
 
-```text
-+-----------+   1. GET /login          +--------------------------+
-|  Browser  | -----------------------> |  FastAPI + Authlib       |
-|  (User)   | <----------------------- |  127.0.0.1:8000          |
-+-----------+  2. redirect to Google   +--------------------------+
-     |                                    ^            |
-     | 3. sign in + consent               |            | 5. code -> token,
-     v                                    |            |    read email/name
-+---------------------+  4. /auth?code   |            v
-|  Google OAuth2 IdP  | -----------------+     +----------------------+
-|  (authentication)   |                        |  users_roles.json    |
-+---------------------+                        |  (local RBAC policy) |
-                                               +----------------------+
-  6. GET /student-area  -> 200 for student/admin
-  7. GET /admin-area    -> 403 for student, 200 for admin
-```
+![Architecture: browser, FastAPI + Authlib server, Google OAuth2 IdP, and the local users_roles.json role store](architecture.png)
 
 ## Dependencies
 
@@ -94,11 +79,3 @@ Then open <http://127.0.0.1:8000>.
 | `/admin-area`   | GET    | `admin`            | `401` if not logged in, `403` for non-admins; shows the role store                |
 
 All HTTP errors (400/401/403/404/500) are rendered as HTML by a global exception handler.
-
-## Demo script (5 minutes)
-
-1. **Logged out:** open `/admin-area` → **401 Unauthorized**.
-2. **Student:** `/login` → Google sign-in with the student account → role badge `student`.
-3. `/student-area` → **200 OK**; `/admin-area` → **403 Forbidden**.
-4. **Admin:** `/logout` → `/login` → choose the admin account → `/admin-area` → **200 OK** with the `users_roles.json` table.
-5. **Takeaway:** OAuth2 proves _who_ the user is; local RBAC decides _what_ they may access; `state` protects the callback against CSRF.
