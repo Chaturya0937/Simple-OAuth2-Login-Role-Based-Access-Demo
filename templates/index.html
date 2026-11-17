@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>OAuth2 RBAC Home</title></head>
+<body style="font-family: Arial; text-align: center; margin-top: 50px;">
+    <h1>OAuth2 Login & Role-Based Access Control</h1>
+    {% if user %}
+        <p>Welcome, <b>{{ user.name }}</b> ({{ user.email }})</p>
+        <p>Your Role: <span style="color: blue; text-transform: uppercase;"><b>{{ user.role }}</b></span></p>
+        <div style="margin: 20px;">
+            <a href="/student-area" style="padding: 10px 20px; background: #007BFF; color: white; text-decoration: none; border-radius: 5px;">Go to Student Area</a>
+            {% if user.role == 'admin' %}
+            <a href="/admin-area" style="padding: 10px 20px; background: #DC3545; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">Go to Admin Area</a>
+            {% endif %}
+        </div>
+        <br><a href="/logout">Logout</a>
+    {% else %}
+        <p>Please log in using your Google Account to proceed.</p>
+        <a href="/login" style="padding: 12px 24px; background: #4285F4; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Login with Google</a>
+    {% endif %}
+</body>
+</html>
