@@ -1,2 +1,16 @@
-/__pycache__
-/venv
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+**/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
+
+# Tooling / OS
+.pytest_cache/
+.DS_Store

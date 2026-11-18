@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}OAuth2 + RBAC Demo{% endblock %}</title>
+    <style>
+      :root {
+        --bg: #f4f6fb;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --blue: #2563eb;
+        --dark: #1f2937;
+        --green: #15803d;
+        --red: #b91c1c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        min-height: 100%;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        padding: 24px 20px;
+        margin: 0;
+        min-height: 100vh;
+        /* padding: 56px 20px; */
+        box-sizing: border-box;
+        background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 55%);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        line-height: 1.55;
+      }
+      .card {
+        width: 100%;
+        max-width: 680px;
+        margin: auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 30px 32px;
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      }
+      .eyebrow {
+        margin: 0 0 6px;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      h1 {
+        margin: 0 0 18px;
+        font-size: 1.55rem;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        margin: 0 0 8px;
+        font-size: 1.3rem;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 24px 0;
+      }
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .profile {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        object-fit: cover;
+        flex: none;
+      }
+      .avatar-fallback {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #e0e7ff;
+        color: #3730a3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex: none;
+      }
+      .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .badge-admin {
+        background: #fee2e2;
+        color: var(--red);
+      }
+      .badge-student {
+        background: #e0f2fe;
+        color: #0369a1;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+      }
+      .btn:hover {
+        text-decoration: none;
+        filter: brightness(0.96);
+      }
+      .btn-primary {
+        background: var(--blue);
+        color: #fff;
+      }
+      .btn-dark {
+        background: var(--dark);
+        color: #fff;
+      }
+      .btn-outline {
+        background: #fff;
+        color: var(--text);
+        border-color: #d1d5db;
+      }
+
+      .ok {
+        display: inline-block;
+        margin-bottom: 14px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: var(--green);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background: #f9fafb;
+        color: var(--muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 5px;
+        font-size: 0.88em;
+      }
+      ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      .error-card {
+        border-left: 6px solid #dc2626;
+      }
+      .footer-link {
+        margin-top: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card {% block card_class %}{% endblock %}">
+      {% block content %}{% endblock %} {% block footer %}
+      <p class="footer-link"><a href="/">&larr; Back to Home</a></p>
+      {% endblock %}
+    </div>
+  </body>
+</html>

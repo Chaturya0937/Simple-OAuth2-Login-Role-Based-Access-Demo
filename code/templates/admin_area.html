@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Admin Area{% endblock %} {% block
+content %}
+<span class="ok">200 OK &mdash; Access granted</span>
+<h2>Admin Area</h2>
+<p class="muted">
+  Restricted endpoint. Accessible only to users with role <code>admin</code>.
+</p>
+<p>
+  Logged in as <strong>{{ user.name }}</strong> ({{ user.email }}) &middot;
+  Role: <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
+</p>
+
+<hr />
+
+<h2 style="font-size: 1.05rem">
+  Local role store (<code>users_roles.json</code>)
+</h2>
+<p class="muted">
+  This is the authorization source of truth used after Google authentication
+  succeeds.
+</p>
+{% if roles %}
+<table>
+  <thead>
+    <tr>
+      <th>User email</th>
+      <th>Assigned role</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for email, role in roles.items() %}
+    <tr>
+      <td>{{ email }}</td>
+      <td><span class="badge badge-{{ role }}">{{ role }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">The role store is currently empty.</p>
+{% endif %} {% endblock %}

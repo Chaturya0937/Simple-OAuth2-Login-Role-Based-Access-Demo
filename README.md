@@ -1,132 +1,81 @@
-## Simple OAuth2 Login + Role-Based Access Demo
+# Simple OAuth2 Login + Role-Based Access Demo
 
-### Architecture Overview
+**Task 11** — Google OAuth 2.0 authentication with locally enforced role-based access control (RBAC), built with **FastAPI + Authlib**.
 
-This project uses **FastAPI** as the backend framework for handling HTTP requests, routing, and session management. **Authlib** manages the OAuth2 / OpenID Connect authentication flow with Google. After successful authentication, a custom email validation guard ensures that only users with an institutional email address ending in `@iiitnr.edu.in` can access the application. Authorized users are mapped to their respective roles (`student` or `admin/lecturer`) using a local JSON datastore. Role-based access control is then used to protect specific application endpoints.
+## Architecture
 
-### Technologies & Dependencies
+Authentication is delegated to Google using the OAuth 2.0 / OpenID Connect Authorization Code flow, handled by **Authlib**. After the callback, the backend reads the verified email from Google's UserInfo response, optionally enforces an institutional email domain, and maps the email to a local role (`student` or `admin`) stored in `users_roles.json`. A reusable FastAPI dependency (`require_role`) guards the protected routes, returning **401** for unauthenticated requests and **403** for authenticated users whose role is not allowed. First-time users are persisted to the role store with the default `student` role.
 
-- Python 3.9+
-- FastAPI
-- Uvicorn
-- Authlib
-- Jinja2
-- Itsdangerous
+![Architecture: browser, FastAPI + Authlib server, Google OAuth2 IdP, and the local users_roles.json role store](architecture.png)
 
----
+## Dependencies
 
-## How to Run the Project
+- Python 3.10+
+- FastAPI (`fastapi>=0.110.0`)
+- Uvicorn (`uvicorn>=0.28.0`)
+- Authlib (`authlib>=1.3.0`)
+- Starlette session middleware via `itsdangerous>=2.1.0`
+- Jinja2 (`jinja2>=3.1.0`)
+- python-dotenv (`python-dotenv>=1.0.0`)
+- httpx (`httpx>=0.27.0`, used by Authlib's OAuth client and by `TestClient`)
 
-Follow these steps to run the project locally.
+## Google Cloud Console setup (one time)
 
-### Step 1: Clone the Repository
+1. Create a project at <https://console.cloud.google.com/>.
+2. Configure the OAuth consent screen (**External**), and add your test Google accounts under **Test users**.
+3. Create **Credentials → OAuth client ID → Web application**.
+4. Add the authorized redirect URI exactly as:
 
-```bash
-git clone <your-repository-url>
-cd <project-folder>
-```
+   ```text
+   http://127.0.0.1:8000/auth
+   ```
 
-### Step 2: Create a Virtual Environment
+5. Copy the Client ID and Client Secret into `code/.env`.
 
-Create an isolated Python virtual environment:
+> **Important:** Open the app at **`http://127.0.0.1:8000`** (not `http://localhost:8000`). The redirect URI and the session cookie must use the same host, otherwise the OAuth `state` check fails on the callback.
 
-```bash
-python -m venv venv
-```
-
-### Step 3: Activate the Virtual Environment
-
-**For Windows PowerShell:**
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-**For Windows Command Prompt (CMD):**
-
-```cmd
-venv\Scripts\activate
-```
-
-**For Linux / macOS:**
+## How to run (Ubuntu / Linux, from scratch)
 
 ```bash
+# 1. Enter the application directory
+cd code
+
+# 2. Create and activate a virtual environment
+python3 -m venv venv
 source venv/bin/activate
-```
 
-### Step 4: Install Dependencies
-
-Install all the required Python packages:
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Configure environment variables
+cp .env.example .env
+#    Then edit .env and set:
+#      GOOGLE_CLIENT_ID=<your client id>
+#      GOOGLE_CLIENT_SECRET=<your client secret>
+#      SESSION_SECRET=<a long random string>
+#      ALLOWED_DOMAIN=              # optional; blank allows any Google account
+#      # e.g. ALLOWED_DOMAIN=iiitnr.edu.in to restrict to one domain
+
+# 5. Edit users_roles.json and set at least one admin account, e.g.
+#      { "admin1@iiitnr.edu.in": "admin", "student1@iiitnr.edu.in": "student" }
+
+# 6. Start the server
+uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-### Step 5: Configure Google OAuth Credentials
+Then open <http://127.0.0.1:8000>.
 
-To enable Google Login, you need to create OAuth 2.0 credentials through the [Google Cloud Console](https://console.cloud.google.com/).
+`GET /login` without credentials in `.env` returns a readable **500** page instead of crashing, so configuration mistakes are obvious.
 
-1. Create or select a Google Cloud project.
-2. Configure the OAuth consent screen.
-3. Create an OAuth 2.0 Client ID.
-4. Select **Web application** as the application type.
-5. Add the appropriate authorized redirect URI configured in your FastAPI application.
+## Endpoints
 
-After obtaining your credentials, configure the following environment variables.
+| Endpoint        | Method | Access             | Behaviour                                                                         |
+| --------------- | ------ | ------------------ | --------------------------------------------------------------------------------- |
+| `/`             | GET    | Public             | Login status and links to protected areas                                         |
+| `/login`        | GET    | Public             | Redirects to Google with `prompt=select_account`                                  |
+| `/auth`         | GET    | Public             | OAuth2 callback: validates `state`, exchanges code, enforces domain, assigns role |
+| `/logout`       | GET    | Public             | Clears the session                                                                |
+| `/student-area` | GET    | `student`, `admin` | `401` if not logged in, `403` for other roles                                     |
+| `/admin-area`   | GET    | `admin`            | `401` if not logged in, `403` for non-admins; shows the role store                |
 
-**For Windows PowerShell:**
-
-```powershell
-$env:GOOGLE_CLIENT_ID = "your-google-client-id"
-$env:GOOGLE_CLIENT_SECRET = "your-google-client-secret"
-```
-
-**For Windows CMD:**
-
-```cmd
-set GOOGLE_CLIENT_ID=your-google-client-id
-set GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-**For Linux / macOS:**
-
-```bash
-export GOOGLE_CLIENT_ID="your-google-client-id"
-export GOOGLE_CLIENT_SECRET="your-google-client-secret"
-```
-
-Replace the placeholder values with your actual Google OAuth credentials.
-
-### Step 6: Start the FastAPI Server
-
-Run the following command:
-
-```bash
-uvicorn main:app --reload
-```
-
-### Step 7: Access the Application
-
-Once the server starts successfully, open your browser and navigate to:
-
-```text
-http://127.0.0.1:8000
-```
-
-To access the automatically generated FastAPI API documentation, visit:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-## Authentication & Authorization Flow
-
-1. **Google Login:** Users authenticate using their Google accounts.
-2. **Domain Validation:** The application verifies that the authenticated email address ends with `@iiitnr.edu.in`.
-3. **Role Assignment:** The user's role is retrieved from the local JSON datastore.
-4. **Access Control:** Application endpoints are protected according to the assigned role.
-5. **Session Management:** Authenticated user information is maintained using secure session handling.
-
-**Note:** Only authorized institutional email accounts are permitted to access the application.
+All HTTP errors (400/401/403/404/500) are rendered as HTML by a global exception handler.

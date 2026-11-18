@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% block title %}OAuth2 Login + RBAC Demo{% endblock
+%} {% block content %}
+<p class="eyebrow">Task 11 &middot; Authentication &amp; Authorization</p>
+<h1>OAuth2 Login + Role-Based Access Control</h1>
+
+{% if user %}
+<div class="profile">
+  {% if user.picture %}
+  <img
+    class="avatar"
+    src="{{ user.picture }}"
+    alt="Profile picture"
+    referrerpolicy="no-referrer"
+  />
+  {% else %}
+  <div class="avatar-fallback">{{ (user.name or user.email)[0]|upper }}</div>
+  {% endif %}
+  <div>
+    <strong>{{ user.name }}</strong><br />
+    <span class="muted">{{ user.email }}</span><br />
+    Role: <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
+  </div>
+</div>
+<p class="muted">
+  Signed in with Google. Your identity is verified by the OAuth2 provider and
+  your role is looked up locally.
+</p>
+<div class="actions">
+  <a class="btn btn-outline" href="/logout">Logout</a>
+</div>
+{% else %}
+<p>Status: <strong>Not logged in</strong></p>
+<p class="muted">
+  Sign in with Google to obtain a session. New accounts are assigned the
+  <code>student</code> role by default.
+</p>
+<div class="actions">
+  <a class="btn btn-primary" href="/login">Login with Google (OAuth2)</a>
+</div>
+{% endif %}
+
+<hr />
+
+<h2 style="font-size: 1.05rem">Protected endpoints (RBAC)</h2>
+<p class="muted">
+  Both areas require authentication. /admin-area additionally requires the
+  <code>admin</code> role &mdash; try it as a student to see a 403.
+</p>
+<div class="actions">
+  <a class="btn btn-dark" href="/student-area">/student-area</a>
+  <a class="btn btn-dark" href="/admin-area">/admin-area</a>
+</div>
+{% endblock %} {# The home page is already the destination of "Back to Home". #}
+{% block footer %}{% endblock %}
